@@ -1,0 +1,4 @@
+{
+  "initial": {"rule_id": "old", "station_regions": {"青站": "湾组", "河站": "湾组", "石站": "湾组"}},
+  "replacement": {"rule_id": "new", "station_regions": {"青站": "北组", "河站": "南组", "石站": "南组"}}
+}

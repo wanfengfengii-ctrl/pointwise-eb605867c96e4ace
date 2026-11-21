@@ -1,0 +1,53 @@
+{
+  "openings": [
+    {
+      "day": "2026-11-12",
+      "batch_id": "source-open",
+      "station": "青站",
+      "reading_id": "r1",
+      "ml": 7000
+    },
+    {
+      "day": "2026-11-13",
+      "batch_id": "target-open",
+      "station": "河站",
+      "reading_id": "r1",
+      "ml": 2000
+    }
+  ],
+  "pending_target": {
+    "day": "2026-11-13",
+    "batch_id": "target-pending",
+    "station": "河站",
+    "reading_id": "r2",
+    "ml": 3000
+  },
+  "ordinary_other_day": {
+    "day": "2026-11-14",
+    "batch_id": "other-day",
+    "station": "石站",
+    "reading_id": "r1",
+    "ml": 1000
+  },
+  "correction": {
+    "correction_id": "move-7",
+    "source_day": "2026-11-12",
+    "target_day": "2026-11-13",
+    "station": "青站",
+    "reading_id": "r1",
+    "expected_revision": "source-open"
+  },
+  "expected": {
+    "source_sequence": 2,
+    "target_sequence": 3,
+    "before_ml": [
+      7000,
+      2000
+    ],
+    "after_ml": [
+      0,
+      12000
+    ],
+    "target_rows_after": 3
+  }
+}

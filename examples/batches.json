@@ -1,0 +1,8 @@
+{
+  "day": "2026-11-12",
+  "opening": {"batch_id": "opening", "station": "青站", "reading_id": "r1", "ml": 7000},
+  "during_scan": [
+    {"batch_id": "correction", "station": "青站", "reading_id": "r1", "operation": "correct", "expected_revision": "opening", "ml": 11000},
+    {"batch_id": "late-arrival", "station": "河站", "reading_id": "r1", "ml": 3000}
+  ]
+}
