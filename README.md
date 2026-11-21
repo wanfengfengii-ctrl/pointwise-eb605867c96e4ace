@@ -21,8 +21,10 @@ python3 -B -m examples.demo
 | 入口 | 输入与结果 |
 | --- | --- |
 | `source.intake.submit(source, batch_id, day, station, reading_id, *, operation='add', ml=..., expected_revision=None)` | 返回带日、序号和修订身份的受理回执。`correct` 和 `withdraw` 引用活动旧修订。撤销省略 `ml`，新增和更正须传实测值或显式 `None`。同批同参复用原回执。 |
-| `source.feed.read_changes(source, day, *, after=0, through=None)` | 按日序返回仍可供出的前后像，左开右闭。`reclaim_confirmed(source, day)` 回收已确认原载荷，受理回执仍可按批号查询。 |
-| `daily.receive.advance(warehouse, source, batch)` | 连续接收真实源批，仓内成套提交行、合计及前沿后确认上游。重投原批返回原实收回执。若回送确认失败，可用原批重投，亦可通过 `lookup_delivery` 查询已提交回执并用其日和序号重送确认。 |
+| `source.intake.submit_cross_day(source, correction_id, source_day, target_day, station, reading_id, *, expected_revision)` | 跨日勘误。核对源日活动行与 `expected_revision`，目标日须不同且目标行身份从未使用；复制源行读数和读次，不接收另一份读数。一次事务内建立源日撤回与目标日补录，各占该日实际下一日序，返回两侧坐标、批号和原件绑定。同号同参重投返回原回执，异参、过期修订或已用目标行拒绝且不留半账。`lookup_cross_day(source, correction_id)` 可在回收后重开读回同一绑定。 |
+| `source.feed.read_changes(source, day, *, after=0, through=None)` | 按日序返回仍可供出的前后像，左开右闭。`reclaim_confirmed(source, day)` 回收已确认原载荷，受理回执仍可按批号查询；联合勘误成员在联合实收已提交且两侧均确认前保留。 |
+| `daily.receive.advance(warehouse, source, batch)` | 连续接收真实源批，仓内成套提交行、合计及前沿后确认上游。重投原批返回原实收回执。若回送确认失败，可用原批重投，亦可通过 `lookup_delivery` 查询已提交回执并用其日和序号重送确认。联合勘误成员只能经联合入口接办，普通入口直接提交会被拒绝。 |
+| `daily.receive.advance_cross_day(warehouse, source, day, sequence)` | 从联合勘误任一侧坐标接办，核对源端同单原件与两侧各自下一公布日序。一侧缺前批时返回待办且两日账均不推进；齐备时两日明细、合计、进度和联合实收一次提交。重投同一或另一侧返回原联合实收，不重复计量。`lookup_cross_day_delivery` 可查已提交的联合首执。 |
 | `catalog.baseline.prepare(warehouse, source, day, cut, rule)` | 选择实际源切点并返回固定底表清单及口径身份。已有固定输入可重读，新切点须由当前源截面及仍能取得的批次核齐。如底表落后于公布前沿，准备时一并核齐已公布的后续材料。 |
 | `refresh.jobs.refresh_step(warehouse, job_id, day, baseline_id, rule_id, *, action, limit=100)` | `start` 绑定具名候选，`scan` 提交一个底表段，`catch_up` 至多兑现 `limit` 个连续批，`activate` 裁决切换。`covered=None` 表示底表尚未核齐，`waiting` 表示切换此时不能提交。已激活作业重投返回原终态。 |
 | `handoff.issue.issue(warehouse, number, day)` | 返回含定稿和回执的 `IssuedStatement`，同号同日再次签存复领原结果。 |
@@ -37,5 +39,7 @@ python3 -B -m examples.demo
 固定底表和已登记口径按身份重读。仓库为已固定切点保存之后已公布的变化依据，候选与源库分离后仍可续办。扫描按段提交，暂停时释放写事务。同一日最多一个在建作业。切换以事务内的实际公布前沿裁决，成套提交新版口径、进度、分区、出处和作业结果。已定稿的交班件沿用签存时的截面与回执。
 
 非法输入、冲突身份、过期修订、日期或序号不合规由 `ValueError` 或其业务子类报告。确认之前必须补齐日账缺批。缺少可核齐的底表材料会拒绝准备，换版追赶遇缺口会保留可证明前缀或报告 `MissingChangeMaterial`。未知日账或固定号由 `LedgerNotFound` 报告。已发布的空账可查、可签存。SQLite 提交失败会回滚该事务并报告原错误。仓库提交后源端确认失败时，已有本地实收和公布截面仍可查询，并可继续重送确认。
+
+跨日勘误的两侧各自占源日、目标日的实际下一日序，一次源端事务同时建立源日撤回与目标日补录，仓库联合入口再成套公布两天。任一侧前批未到时两日账都不推进，其他日期照常供数。普通 `advance` 拒绝联合成员。仓库提交后源端确认失败时联合实收已生效，可重开并从任一侧坐标补认，重复接办只返回原实收。联合原件在联合实收提交且两侧均确认前不被 `reclaim_confirmed` 回收，回收后 `lookup_cross_day` 仍返回原绑定和原回执。
 
 原回归使用独立临时文件库及固定输入。确定性工序间调度覆盖候选就绪后现行账抢先公布，SQLite 授权器拒绝一次实际提交以核对失败与重开。预期金额、计数、日序及来源由固定样例手算断言。

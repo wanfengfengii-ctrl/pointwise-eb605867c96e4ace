@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from source.cross_day import lookup_cross_day, lookup_cross_day_coordinate, submit_cross_day
 from source.feed import ChangeBatch, append_change, source_frontiers
 from source.normalize import normalize_reading, submission_fingerprint
 from source.revisions import RevisionConflict, plan_revision

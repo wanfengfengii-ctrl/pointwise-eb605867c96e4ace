@@ -85,7 +85,19 @@ def confirm_through(db, day, through):
 
 def reclaim_confirmed(db, day):
     day_id(day)
+    from source.cross_day import protected_sequences
+
     with transaction(db, write=True):
         _, confirmed = source_frontiers(db, day)
-        removed = db.execute('DELETE FROM source_changes WHERE day = ? AND sequence <= ?', (day, confirmed))
+        protected = protected_sequences(db, day)
+        if protected:
+            placeholders = ', '.join('?' for _ in protected)
+            removed = db.execute(
+                f'DELETE FROM source_changes WHERE day = ? AND sequence <= ? '
+                f'AND sequence NOT IN ({placeholders})',
+                (day, confirmed, *sorted(protected)),
+            )
+        else:
+            removed = db.execute('DELETE FROM source_changes WHERE day = ? AND sequence <= ?',
+                                 (day, confirmed))
         return removed.rowcount

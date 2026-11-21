@@ -7,6 +7,7 @@ from handoff.archive import ensure_statement_schema
 from handoff.receipts import ensure_receipt_schema
 from refresh.checkpoint import ensure_checkpoint_schema
 from refresh.jobs import ensure_job_schema
+from source.cross_day import ensure_cross_day_schema
 from source.feed import ensure_feed_schema
 from source.intake import ensure_submission_schema
 from source.rows import ensure_row_schema
@@ -18,6 +19,7 @@ def initialize_source(db):
         ensure_feed_schema(db)
         ensure_row_schema(db)
         ensure_submission_schema(db)
+        ensure_cross_day_schema(db)
 
 
 def initialize_warehouse(db, initial_rule):
